@@ -6,8 +6,10 @@ import java.util.Scanner;
 public class Exercise2 {
 
   public static void main(String[] argv) throws Exception {
-    Scanner sc = new Scanner(System.in);
+    System.out.println(compute(new Scanner(System.in)));
+  }
 
+  public static String compute(Scanner sc) {
     long prixParPersonne = sc.nextLong();
     int nbTables = sc.nextInt();
 
@@ -25,7 +27,6 @@ public class Exercise2 {
       recette += noteTable;
     }
 
-    System.out.println((int) Math.ceil(recette));
-    /* Vous pouvez aussi effectuer votre traitement une fois que vous avez lu toutes les données.*/
+    return Integer.toString((int) Math.ceil(recette));
   }
 }

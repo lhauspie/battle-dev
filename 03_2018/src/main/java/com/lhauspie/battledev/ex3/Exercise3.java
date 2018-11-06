@@ -9,8 +9,10 @@ import java.util.Scanner;
 public class Exercise3 {
 
   public static void main(String[] argv) throws Exception {
-    Scanner sc = new Scanner(System.in);
+    System.out.println(compute(new Scanner(System.in)));
+  }
 
+  public static String compute(Scanner sc) {
     Votant me = new Votant();
     me.note1 = sc.nextInt();
     me.note2 = sc.nextInt();
@@ -42,10 +44,7 @@ public class Exercise3 {
       sum += v.note6;
     }
 
-    int avg = (int) Math.ceil(sum / nbBestCopains * 1.0);
-
-    System.out.println(avg);
-    /* Vous pouvez aussi effectuer votre traitement une fois que vous avez lu toutes les données.*/
+    return Integer.toString((int) Math.ceil(sum / nbBestCopains * 1.0));
   }
 
   static class Votant {

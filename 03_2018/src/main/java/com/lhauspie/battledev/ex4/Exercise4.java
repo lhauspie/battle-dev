@@ -7,8 +7,10 @@ public class Exercise4 {
   private static Integer NB_CREPES = 6;
 
   public static void main(String[] argv) throws Exception {
-    Scanner sc = new Scanner(System.in);
+    System.out.println(compute(new Scanner(System.in)));
+  }
 
+  public static String compute(Scanner sc) {
     List<Integer> originalCrepes = new ArrayList<>();
     List<Integer> sortedCrepes = new ArrayList<>();
 
@@ -24,9 +26,7 @@ public class Exercise4 {
     while (!isSolvable(crepes, nbRetournements, sortedCrepes)) {
       nbRetournements++;
     }
-
-    System.out.println(nbRetournements);
-    /* Vous pouvez aussi effectuer votre traitement une fois que vous avez lu toutes les données.*/
+    return Integer.toString(nbRetournements);
   }
 
   private static boolean isSolvable(List<Integer> crepes, int nbRetournement, List<Integer> sorted) {

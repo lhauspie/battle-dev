@@ -9,8 +9,10 @@ import java.util.Scanner;
 public class Exercise5 {
 
   public static void main(String[] argv) throws Exception {
-    Scanner sc = new Scanner(System.in);
+    System.out.println(compute(new Scanner(System.in)));
+  }
 
+  public static String compute(Scanner sc) {
     int nbTerminus = sc.nextInt();
     Integer[][] matrice = new Integer[nbTerminus][nbTerminus];
 
@@ -20,8 +22,7 @@ public class Exercise5 {
       }
     }
 
-    System.out.println(score(matrice, 0, nbTerminus - 1));
-    /* Vous pouvez aussi effectuer votre traitement une fois que vous avez lu toutes les données.*/
+    return Long.toString(score(matrice, 0, nbTerminus - 1));
   }
 
   public static long score(Integer[][] matrice, int start, int end) {
