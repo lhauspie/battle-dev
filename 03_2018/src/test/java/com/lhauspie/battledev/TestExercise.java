@@ -1,5 +1,6 @@
 package com.lhauspie.battledev;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Scanner;
 
@@ -8,9 +9,11 @@ public class TestExercise {
     private Exercise exercise;
     private int nbTestCases;
 
-    public TestExercise(Exercise exercise, int nbTestCases) {
+    public TestExercise(Exercise exercise) {
         this.exercise = exercise;
-        this.nbTestCases = nbTestCases;
+        File[] samples = new File(exercise.getClass().getResource("sample").getPath())
+                .listFiles((dir, name) -> name.matches("input[0-9]+\\.txt"));
+        this.nbTestCases = samples.length;
     }
 
     public void run() {

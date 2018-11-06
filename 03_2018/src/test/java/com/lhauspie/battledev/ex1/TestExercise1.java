@@ -4,6 +4,6 @@ import com.lhauspie.battledev.TestExercise;
 
 public class TestExercise1 {
     public static void main(String[] args) {
-        new TestExercise(new Exercise1(), 3).run();
+        new TestExercise(new Exercise1()).run();
     }
 }
