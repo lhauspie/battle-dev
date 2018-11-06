@@ -1,16 +1,18 @@
 package com.lhauspie.battledev.ex4;
 
+import com.lhauspie.battledev.Exercise;
+
 import java.util.*;
 
 
-public class Exercise4 {
+public class Exercise4 implements Exercise {
   private static Integer NB_CREPES = 6;
 
   public static void main(String[] argv) throws Exception {
-    System.out.println(compute(new Scanner(System.in)));
+    System.out.println(new Exercise4().compute(new Scanner(System.in)));
   }
 
-  public static String compute(Scanner sc) {
+  public String compute(Scanner sc) {
     List<Integer> originalCrepes = new ArrayList<>();
     List<Integer> sortedCrepes = new ArrayList<>();
 

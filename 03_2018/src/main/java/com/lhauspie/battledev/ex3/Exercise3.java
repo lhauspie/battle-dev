@@ -1,18 +1,20 @@
 package com.lhauspie.battledev.ex3;
 
+import com.lhauspie.battledev.Exercise;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
 
-public class Exercise3 {
+public class Exercise3 implements Exercise {
 
   public static void main(String[] argv) throws Exception {
-    System.out.println(compute(new Scanner(System.in)));
+    System.out.println(new Exercise3().compute(new Scanner(System.in)));
   }
 
-  public static String compute(Scanner sc) {
+  public String compute(Scanner sc) {
     Votant me = new Votant();
     me.note1 = sc.nextInt();
     me.note2 = sc.nextInt();

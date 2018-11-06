@@ -1,18 +1,20 @@
 package com.lhauspie.battledev.ex5;
 
+import com.lhauspie.battledev.Exercise;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 
 
-public class Exercise5 {
+public class Exercise5 implements Exercise {
 
   public static void main(String[] argv) throws Exception {
-    System.out.println(compute(new Scanner(System.in)));
+    System.out.println(new Exercise5().compute(new Scanner(System.in)));
   }
 
-  public static String compute(Scanner sc) {
+  public String compute(Scanner sc) {
     int nbTerminus = sc.nextInt();
     Integer[][] matrice = new Integer[nbTerminus][nbTerminus];
 

@@ -1,15 +1,17 @@
 package com.lhauspie.battledev.ex2;
 
+import com.lhauspie.battledev.Exercise;
+
 import java.util.Scanner;
 
 
-public class Exercise2 {
+public class Exercise2 implements Exercise {
 
   public static void main(String[] argv) throws Exception {
-    System.out.println(compute(new Scanner(System.in)));
+    System.out.println(new Exercise2().compute(new Scanner(System.in)));
   }
 
-  public static String compute(Scanner sc) {
+  public String compute(Scanner sc) {
     long prixParPersonne = sc.nextLong();
     int nbTables = sc.nextInt();
 
