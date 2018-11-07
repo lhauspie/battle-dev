@@ -2,6 +2,8 @@ package com.lhauspie.battledev;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class TestExercise {
@@ -26,12 +28,14 @@ public class TestExercise {
         InputStream input = exercise.getClass().getResourceAsStream("sample/input" + testNumber + ".txt");
         InputStream output = exercise.getClass().getResourceAsStream("sample/output" + testNumber + ".txt");
 
-        String expected = new Scanner(output).next();
-        String result = exercise.compute(new Scanner(input));
-        if (expected.equals(result)) {
-            System.out.println("✅ Test " + testNumber + " is OK : expected(" + expected + ") == result(" + result + ")");
+        List<String> actual = exercise.compute(new Scanner(input));
+        List<String> expected = new ArrayList<>();
+        new Scanner(output).forEachRemaining(s -> expected.add(s));
+
+        if (expected.equals(actual)) {
+            System.out.println("✅ Test " + testNumber + " is OK : expected(" + expected + ") == actual(" + actual + ")");
         } else {
-            System.out.println("❎ Test " + testNumber + " is KO : expected(" + expected + ") <> result(" + result + ")");
+            System.out.println("❎ Test " + testNumber + " is KO : expected(" + expected + ") <> actual(" + actual + ")");
         }
     }
 }
