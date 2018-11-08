@@ -35,55 +35,50 @@ public class Exercise5 implements Exercise {
       cours2.creneau = 2;
 
       Etudiant etudiant = new Etudiant();
+      etudiant.id = i;
       etudiant.cours1 = cours1;
       etudiant.cours2 = cours2;
 
       etudiants.add(etudiant);
     }
 
-    List<Cours> courses = getCombinaison(new ArrayList<>(), etudiants, 0);
+    System.err.println("================================");
+    for (Etudiant etudiant : etudiants) {
+      boolean cours1CompatibleWithOthers = true;
+      boolean cours2CompatibleWithOthers = true;
+      System.err.println("-----------------------");
+      System.err.println("etudiant.cours1 : " + etudiant.cours1);
+      System.err.println("etudiant.cours2 : " + etudiant.cours2);
+      for (Etudiant currentEtudiant : etudiants) {
+        // on ne veut comparer le creneau en cours qu'avec les autres etudiants (pas avec l'etudiant lui-meme)
+        // si on a deja choisi un creneau sur le `currentEtudiant` (chosen != 0), alors ca veut dire qu'il est forcement compatible avec le `etudiant`
+        if (currentEtudiant.id != etudiant.id && currentEtudiant.chosen == 0) {
+          System.err.println("currentEtudiant.cours1 : " + currentEtudiant.cours1);
+          System.err.println("currentEtudiant.cours2 : " + currentEtudiant.cours2);
+          // on sait qu'un creneau est incompatible avec un autre étudiant si il est en collision avec 1 des 2 creneaux de cet étudiant
+          boolean c1c1 = etudiant.cours1.isCompatible(currentEtudiant.cours1);
+          boolean c1c2 = etudiant.cours1.isCompatible(currentEtudiant.cours2);
+          boolean c2c1 = etudiant.cours2.isCompatible(currentEtudiant.cours1);
+          boolean c2c2 = etudiant.cours2.isCompatible(currentEtudiant.cours2);
+          System.err.println("c1c1: " + c1c1 + " | c1c2: " + c1c2 + " | c2c1: " + c2c1 + " | c2c2: " + c2c2);
 
-    if (courses.size() == 0) {
-      return Arrays.asList("KO");
-    }
 
-    return courses.stream().map(c -> Integer.toString(c.creneau)).collect(Collectors.toList());
-  }
-
-  public static List<Cours> getCombinaison(List<Cours> takenCourses, List<Etudiant> etudiants, int etudiantIndex) {
-    if (etudiantIndex == etudiants.size()) {
-      return takenCourses;
-    } else {
-      Etudiant currentEtudiant = etudiants.get(etudiantIndex);
-      List<Cours> result = new ArrayList<>();
-      List<Cours> takenCoursesCopy = new ArrayList<>(takenCourses);
-      if (isCompatibleWithPlanning(currentEtudiant.cours1, takenCourses)) {
-        takenCoursesCopy.add(currentEtudiant.cours1);
-        result.addAll(getCombinaison(takenCoursesCopy, etudiants, etudiantIndex + 1));
-        takenCoursesCopy.remove(takenCoursesCopy.size() - 1);
-      }
-      if (result.isEmpty()) {
-        if (isCompatibleWithPlanning(currentEtudiant.cours2, takenCourses)) {
-          takenCoursesCopy.add(currentEtudiant.cours2);
-          result.addAll(getCombinaison(takenCoursesCopy, etudiants, etudiantIndex + 1));
-          takenCoursesCopy.remove(takenCoursesCopy.size() - 1);
+          cours1CompatibleWithOthers = cours1CompatibleWithOthers && (etudiant.cours1.isCompatible(currentEtudiant.cours1) || etudiant.cours1.isCompatible(currentEtudiant.cours2));
+          cours2CompatibleWithOthers = etudiant.cours2.isCompatible(currentEtudiant.cours1) || etudiant.cours2.isCompatible(currentEtudiant.cours2);
+          if (!cours1CompatibleWithOthers && !cours2CompatibleWithOthers) {
+            return Arrays.asList("KO");
+          }
         }
       }
-      return result;
-    }
-  }
 
-  public static boolean isCompatibleWithPlanning(Cours cours, List<Cours> takenCourses) {
-    for (Cours currentCours : takenCourses) {
-      if (!areCompatible(cours, currentCours)) {
-        return false;
+      if (cours1CompatibleWithOthers) {
+        etudiant.chosen = 1;
+      } else if (cours2CompatibleWithOthers) {
+        etudiant.chosen = 2;
       }
     }
-    return true;
-  }
 
-  public static boolean areCompatible(Cours c1, Cours c2) {
-    return c1.fin < c2.debut || c1.debut > c2.fin;
+    return etudiants.stream().map(e -> Integer.toString(e.chosen)).collect(Collectors.toList());
   }
 
   private static class Cours {
@@ -93,12 +88,22 @@ public class Exercise5 implements Exercise {
 
     @Override
     public String toString() {
-      return Integer.toString(creneau);
+      return "Cours{" +
+              "creneau=" + creneau +
+              ", debut=" + debut +
+              ", fin=" + fin +
+              '}';
+    }
+
+    public boolean isCompatible(Cours other) {
+      return this.fin < other.debut || this.debut > other.fin;
     }
   }
 
   public static class Etudiant {
+    int id;
     Cours cours1;
     Cours cours2;
+    int chosen = 0;
   }
 }
