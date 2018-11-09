@@ -14,11 +14,11 @@ public class Exercise5 implements Exercise {
   }
 
   public List<String> compute(Scanner sc) {
-    int nbStudent = sc.nextInt();
+    int nbStudents = sc.nextInt();
 
     List<Course> courses = new ArrayList<>();
 
-    for (int i = 0; i < nbStudent; i++) {
+    for (int i = 0; i < nbStudents; i++) {
       int debut1 = sc.nextInt();
       int fin1 = debut1 + 60;
       int debut2 = sc.nextInt();
@@ -40,47 +40,75 @@ public class Exercise5 implements Exercise {
       courses.add(course2);
     }
 
+    for (Course course: courses) {
+      course.next.addAll(
+              courses.stream()
+                      // on supprime les autres cours de l'etudiant selectionné
+                      .filter(c -> c.student != course.student)
+                      // on supprime les autres cours qui ne sont pas compatibles avec le cours selectionné
+                      .filter(c -> c.debut > course.fin)
+                      .collect(Collectors.toList())
+      );
+    }
+
     courses.sort(Comparator.comparingInt(o -> o.debut));
-    System.err.println("sorted courses = " + courses);
 
+    List<Course> selectedCourses = new ArrayList<>();
+    System.err.println("======================");
+    for (Course course : courses) {
+      System.err.println("evaluating course " + course.toStringLight());
+      selectedCourses = evaluate(course, new ArrayList<>(), nbStudents);
+      if (selectedCourses != null && selectedCourses.size() == nbStudents) {
+        break;
+      }
+    }
+    System.err.println("======================");
 
-    List<Course> selectedCourses = choseCourses(courses, nbStudent);
-
-    if (selectedCourses.size() < nbStudent) {
+    if (selectedCourses == null) {
       return Arrays.asList("KO");
     }
 
     selectedCourses.sort(Comparator.comparingInt(o -> o.student));
+
+
     return selectedCourses.stream().map(c -> Integer.toString(c.number)).collect(Collectors.toList());
   }
 
-  private static List<Course> choseCourses(List<Course> courses, int nbStudents) {
-    if (courses.size() < nbStudents) {
-      return Collections.EMPTY_LIST; // meaning "no solution found"
+  public static List<Course> evaluate(Course course, List<Integer> alreadySelectedStudents, int nbStudents) {
+    // si je rencontre un cours appartenant à un etudiant dejà choisi,
+    // j'arrete tout car c'est un chemin non viable dans le graph
+    if (alreadySelectedStudents.contains(course.student)) {
+      return null;
     }
 
-    Course firstAvailableCourse = courses.get(0);
-    if (nbStudents == 1) {
-      return Arrays.asList(firstAvailableCourse);
+    // ici, je sais que le noeud en cours `course` ne correspond à aucun etudiant dejà choisi
+    // donc si il n'a pas de feuille, alors je le choisi d'office
+    if (course.next.isEmpty()) {
+      if (nbStudents == 1) {
+        return Arrays.asList(course);
+      } else {
+        return null;
+      }
     }
 
-    List<Course> nextCourses = courses.stream()
-            // on supprime les autres cours de l'etudiant selectionné
-            .filter(c -> c.student != firstAvailableCourse.student)
-            // on supprime les autres cours qui ne sont pas compatibles avec le cours selectionné
-            .filter(c -> c.debut > firstAvailableCourse.fin)
-            .collect(Collectors.toList());
-
-    List<Course> selectedCourses = new ArrayList<>();
-    selectedCourses.add(firstAvailableCourse);
-    selectedCourses.addAll(choseCourses(nextCourses, nbStudents - 1));
-
-    // selectedCourses n'est pas satisfaisant donc je vais commencer avec le cours suivant
-    if (selectedCourses.size() < nbStudents) {
-      return choseCourses(courses.subList(1, courses.size()), nbStudents);
+    alreadySelectedStudents.add(course.student);
+    List<Course> nextEval = new ArrayList<>();
+    for (Course nextCourse : course.next) {
+      nextEval = evaluate(nextCourse, alreadySelectedStudents, nbStudents-1);
+      // nextEval == null signifie que les chemins partant du noeud nextCourse ne sont pas viable
+      if (nextEval != null) {
+        break;
+      }
     }
+    alreadySelectedStudents.remove(Integer.valueOf(course.student));
 
-    return selectedCourses;
+    List<Course> result = null;
+    if (nextEval != null) {
+      result = new ArrayList<>();
+      result.add(course);
+      result.addAll(nextEval);
+    }
+    return result;
   }
 
   public static class Course {
@@ -88,6 +116,7 @@ public class Exercise5 implements Exercise {
     int number;
     int debut;
     int fin;
+    List<Course> next = new ArrayList<>();
 
     @Override
     public String toString() {
@@ -96,6 +125,14 @@ public class Exercise5 implements Exercise {
               ", number=" + number +
               ", debut=" + debut +
               ", fin=" + fin +
+              ", next=" + String.join(" | ",next.stream().map(Course::toStringLight).collect(Collectors.toList())) +
+              '}';
+    }
+
+    public String toStringLight() {
+      return "Course{" +
+              "student=" + student +
+              ", number=" + number +
               '}';
     }
   }
