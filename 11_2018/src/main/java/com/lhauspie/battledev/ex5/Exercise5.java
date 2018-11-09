@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 
 public class Exercise5 implements Exercise {
 
+  static final int COURSE_DURATION = 60;
+
+
   public static void main(String[] argv) throws Exception {
     List<String> result = new Exercise5().compute(new Scanner(System.in));
     result.forEach(System.out::println);
@@ -18,100 +21,150 @@ public class Exercise5 implements Exercise {
 
     List<Course> courses = new ArrayList<>();
 
+    int courseId = 0;
+    Course course;
     for (int i = 0; i < nbStudents; i++) {
-      int debut1 = sc.nextInt();
-      int fin1 = debut1 + 60;
-      int debut2 = sc.nextInt();
-      int fin2 = debut2 + 60;
+      courses.add(course = new Course());
+      course.id = courseId++;
+      course.student = i;
+      course.number = 1;
+      course.debut = sc.nextInt();
+      course.fin = course.debut + COURSE_DURATION;
 
-      Course course1 = new Course();
-      course1.debut = debut1;
-      course1.fin = fin1;
-      course1.number = 1;
-      course1.student = i;
-
-      Course course2 = new Course();
-      course2.debut = debut2;
-      course2.fin = fin2;
-      course2.number = 2;
-      course2.student = i;
-
-      courses.add(course1);
-      courses.add(course2);
+      courses.add(course = new Course());
+      course.id = courseId++;
+      course.student = i;
+      course.number = 2;
+      course.debut = sc.nextInt();
+      course.fin = course.debut + COURSE_DURATION;
     }
 
-    for (Course course: courses) {
-      course.next.addAll(
+    for (Course aCourse: courses) {
+      aCourse.next.addAll(
               courses.stream()
                       // on supprime les autres cours de l'etudiant selectionné
-                      .filter(c -> c.student != course.student)
                       // on supprime les autres cours qui ne sont pas compatibles avec le cours selectionné
-                      .filter(c -> c.debut > course.fin)
+                      .filter(c -> c.student != aCourse.student && c.debut > aCourse.fin)
                       .collect(Collectors.toList())
       );
     }
 
-    courses.sort(Comparator.comparingInt(o -> o.debut));
+    MemoizedItem[] memo = new MemoizedItem[courses.size()];
+    List<Planning> plannings = new ArrayList<>();
 
-    List<Course> selectedCourses = new ArrayList<>();
-    System.err.println("======================");
-    for (Course course : courses) {
-      System.err.println("evaluating course " + course.toStringLight());
-      selectedCourses = evaluate(course, new ArrayList<>(), nbStudents);
-      if (selectedCourses != null && selectedCourses.size() == nbStudents) {
-        break;
+    courses.sort(Comparator.comparingInt(o -> -o.debut));
+    for (Course aCourse : courses) {
+      System.err.print("getting plannings for course " + aCourse.toStringLight());
+      List<Planning> coursePlannings = getPlannings(aCourse, memo);
+      System.err.println(" returns " + coursePlannings.size() + " viable plannings");
+      plannings.addAll(coursePlannings);
+    }
+
+    for (Planning planning: plannings) {
+      if (planning.isViable() && planning.size == nbStudents) {
+        return planning.extractCourses().stream()
+                .sorted(Comparator.comparingInt(c -> c.student))
+                .map(c -> Integer.toString(c.number))
+                .collect(Collectors.toList());
       }
     }
-    System.err.println("======================");
 
-    if (selectedCourses == null) {
-      return Arrays.asList("KO");
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
-
-    selectedCourses.sort(Comparator.comparingInt(o -> o.student));
-
-
-    return selectedCourses.stream().map(c -> Integer.toString(c.number)).collect(Collectors.toList());
+    return Arrays.asList("KO");
   }
 
-  public static List<Course> evaluate(Course course, List<Integer> alreadySelectedStudents, int nbStudents) {
-    // si je rencontre un cours appartenant à un etudiant dejà choisi,
-    // j'arrete tout car c'est un chemin non viable dans le graph
-    if (alreadySelectedStudents.contains(course.student)) {
-      return null;
+  public static List<Planning> getPlannings(Course course, MemoizedItem[] memo) {
+    // MemoizedItem == null signifie : "calcul non effectué"
+    if (memo[course.id] != null) {
+      return memo[course.id].list;
     }
 
-    // ici, je sais que le noeud en cours `course` ne correspond à aucun etudiant dejà choisi
-    // donc si il n'a pas de feuille, alors je le choisi d'office
-    if (course.next.isEmpty()) {
-      if (nbStudents == 1) {
-        return Arrays.asList(course);
+    List<Course> result = new ArrayList<>();
+    if (course.next.size() == 0) {
+      return Arrays.asList(new Planning(course));
+    }
+
+    List<Planning> plannings = new ArrayList<>();
+    for (int i = 0; i < course.next.size(); i++) {
+      List<Planning> nextPlannings = getPlannings(course.next.get(i), memo);
+      for (Planning nextPlanning : nextPlannings) {
+        if (nextPlanning.isCompatibleWith(course)) {
+          plannings.add(new Planning(course, nextPlanning));
+        }
+      }
+    }
+    memo[course.id] = new MemoizedItem(plannings);
+    return plannings;
+  }
+
+
+  public static class MemoizedItem {
+    List<Planning> list;
+
+    public MemoizedItem(List<Planning> list) {
+      this.list = list;
+    }
+  }
+
+  // this class represents a planning that contains courses
+  // this planning is viable if all courses stands for distinct Students
+  // this planning cached the fact that it's viable or not
+  public static class Planning {
+    private int student;
+    private Course course;
+    private Planning next;
+    private boolean viable = false;
+    private int size = 0;
+
+    public Planning(Course course) {
+      this.viable = true;
+      this.course = course;
+      this.size = 1;
+    }
+
+    public Planning(Course course, Planning planning) {
+      if (planning.isCompatibleWith(course)) {
+        this.viable = true;
+        this.course = course;
+        this.next = planning;
+        this.size = planning.size + 1;
+      }
+    }
+
+    public boolean isViable() {
+      return viable;
+    }
+
+    public boolean isCompatibleWith(Course course) {
+      return this.course.student != course.student && (this.next == null || this.next.isCompatibleWith(course));
+    }
+
+    public List<Course> extractCourses() {
+      List<Course> courses;
+      if (next == null) {
+        courses = new ArrayList<>();
       } else {
-        return null;
+        courses = next.extractCourses();
       }
+      courses.add(course);
+      return courses;
     }
 
-    alreadySelectedStudents.add(course.student);
-    List<Course> nextEval = new ArrayList<>();
-    for (Course nextCourse : course.next) {
-      nextEval = evaluate(nextCourse, alreadySelectedStudents, nbStudents-1);
-      // nextEval == null signifie que les chemins partant du noeud nextCourse ne sont pas viable
-      if (nextEval != null) {
-        break;
-      }
+    @Override
+    public String toString() {
+      return "Planning{" +
+              "course=" + course.toStringLight() +
+              ", next=" + next +
+              '}';
     }
-    alreadySelectedStudents.remove(Integer.valueOf(course.student));
-
-    List<Course> result = null;
-    if (nextEval != null) {
-      result = new ArrayList<>();
-      result.add(course);
-      result.addAll(nextEval);
-    }
-    return result;
   }
 
   public static class Course {
+    int id;
     int student;
     int number;
     int debut;
@@ -121,7 +174,8 @@ public class Exercise5 implements Exercise {
     @Override
     public String toString() {
       return "Course{" +
-              "student=" + student +
+              "id=" + id +
+              ", student=" + student +
               ", number=" + number +
               ", debut=" + debut +
               ", fin=" + fin +
@@ -131,9 +185,16 @@ public class Exercise5 implements Exercise {
 
     public String toStringLight() {
       return "Course{" +
-              "student=" + student +
+              "id=" + id +
+              ", student=" + student +
               ", number=" + number +
               '}';
+    }
+    public String toStringMicro() {
+      return id +
+              "(" + student +
+              ", " + number +
+              ')';
     }
   }
 }
